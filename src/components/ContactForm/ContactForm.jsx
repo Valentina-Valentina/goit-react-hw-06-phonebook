@@ -1,27 +1,27 @@
-import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+
+import { getContactsList } from 'redux/selectors';
+import { addContact } from 'redux/contactsSlice';
 
 import { Form, Input, Label, Button } from './ContactForm.module';
 
-export const ContactForm = ({ addContact }) => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+export const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContactsList);
 
-  const handleChange = event =>
-    event.currentTarget.name === 'name'
-      ? setName(event.currentTarget.value)
-      : setNumber(event.currentTarget.value);
-  
-  const resetContactForm = () => {
-    setName('');
-    setNumber('');
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
 
-    addContact({ name, number });
+    const form = e.target;
+    const formName = e.target.elements.name.value;
+    const formNumber = e.target.elements.number.value;
 
-    resetContactForm();
+    if (contacts.some(({ name }) => name === formName)) {
+      return alert(`${formName} is already in contacts`);
+    }
+
+    dispatch(addContact(formName, formNumber));
+    form.reset();
   };
 
   return (
@@ -34,8 +34,7 @@ export const ContactForm = ({ addContact }) => {
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
           placeholder="Enter name"
-          value={name}
-          onChange={handleChange}
+          value={contacts.name}
         />
       </Label>
       <Label>
@@ -46,13 +45,10 @@ export const ContactForm = ({ addContact }) => {
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
           placeholder="Enter number"
-          value={number}
-          onChange={handleChange}
+          value={contacts.number}
         />
       </Label>
-      <Button type="submit" disabled={!name || !number}>
-        Add contact
-      </Button>
+      <Button type="submit">Add contact</Button>
     </Form>
   );
 };
